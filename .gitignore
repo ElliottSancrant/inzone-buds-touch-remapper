@@ -1,0 +1,17 @@
+# Local build products and release archives
+**/bin/
+**/obj/
+artifacts/
+dist/
+dist-background/
+*.zip
+*.sha256
+# Local captures and editor state
+*.log
+*.log.*
+.vs/
+.idea/
+*.user
+*.suo
+Thumbs.db
+.DS_Store

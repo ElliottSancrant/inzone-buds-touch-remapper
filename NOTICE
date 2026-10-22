@@ -1,0 +1,12 @@
+INZONE Mic Switch is an independent project and is not affiliated with or
+endorsed by Sony. Sony and INZONE are trademarks of their respective owners.
+
+This repository contains the bridge implementation and documentation of
+observed protocol behavior. Protocol research included inspection of INZONE
+Hub and live device reports. Sony binaries, decompiled Sony source, firmware,
+and local capture logs are not distributed here.
+
+The bridge has no third-party NuGet package dependencies. Release packages
+are framework-dependent: the Microsoft .NET runtime is installed separately
+and is subject to its own license. The MIT license applies to this project's
+code and documentation, not to Sony software, trademarks, or the .NET runtime.

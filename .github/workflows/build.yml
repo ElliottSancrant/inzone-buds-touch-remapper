@@ -1,0 +1,25 @@
+name: Build and test
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Publish console and background apps; run offline tests
+        shell: pwsh
+        run: ./Build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: InzoneMicSwitch-win-x64
+          path: |
+            artifacts/InzoneMicSwitch-win-x64.zip
+            artifacts/InzoneMicSwitch-win-x64.zip.sha256
+          if-no-files-found: error
