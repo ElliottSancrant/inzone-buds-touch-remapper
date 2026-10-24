@@ -4,8 +4,9 @@ param(
     [ValidateNotNullOrEmpty()][string]$BudsName = 'INZONE Buds',
     [string]$DeskId,
     [string]$BudsId,
+    [string]$Config,
     [ValidateRange(250, 10000)][int]$WindowMs = 4000,
-    [ValidateSet('volume-return', 'mute-state')][string]$Gesture = 'volume-return'
+    [ValidateSet('ambient-triple', 'volume-return', 'mute-state')][string]$Gesture = 'ambient-triple'
 )
 $ErrorActionPreference = 'Stop'
 $taskName = 'INZONE Microphone Switcher'
@@ -18,10 +19,30 @@ if (!(Test-Path -LiteralPath (Join-Path $sourceDir 'InzoneMicSwitch.exe'))) { th
 function Quote-Argument([string]$Value) {
     '"' + ($Value -replace '(\\*)"', '$1$1\"' -replace '(\\+)$', '$1$1') + '"'
 }
-$arguments = '--background --enable-switch --desk-name ' + (Quote-Argument $DeskName) +
-    ' --buds-name ' + (Quote-Argument $BudsName) + ' --window-ms ' + $WindowMs + ' --trigger ' + $Gesture
-if ($DeskId) { $arguments += ' --desk-id ' + (Quote-Argument $DeskId) }
-if ($BudsId) { $arguments += ' --buds-id ' + (Quote-Argument $BudsId) }
+$cliArguments = [System.Collections.Generic.List[string]]::new()
+$cliArguments.Add('--background'); $cliArguments.Add('--enable-actions')
+if ($Config) {
+    if ($PSBoundParameters.ContainsKey('Gesture')) { throw 'Use bindings in the config instead of -Gesture.' }
+    $cliArguments.Add('--config'); $cliArguments.Add((Resolve-Path -LiteralPath $Config).Path)
+}
+foreach ($option in @(
+    @{ Parameter = 'DeskName'; Flag = '--desk-name'; Value = $DeskName },
+    @{ Parameter = 'BudsName'; Flag = '--buds-name'; Value = $BudsName },
+    @{ Parameter = 'WindowMs'; Flag = '--window-ms'; Value = $WindowMs },
+    @{ Parameter = 'Gesture'; Flag = '--trigger'; Value = $Gesture }
+)) {
+    if (!$Config -or $PSBoundParameters.ContainsKey($option.Parameter)) {
+        $cliArguments.Add($option.Flag); $cliArguments.Add([string]$option.Value)
+    }
+}
+if ($DeskId) { $cliArguments.Add('--desk-id'); $cliArguments.Add($DeskId) }
+if ($BudsId) { $cliArguments.Add('--buds-id'); $cliArguments.Add($BudsId) }
+# Validate before touching an existing installation. The config stays at its original path.
+$consoleExe = Join-Path $PSScriptRoot 'dist/InzoneMicSwitch.exe'
+if (!(Test-Path -LiteralPath $consoleExe)) { throw 'The release console executable is required to validate configuration.' }
+& $consoleExe --validate-config @cliArguments
+if ($LASTEXITCODE -ne 0) { throw 'Configuration validation failed; installation was left unchanged.' }
+$arguments = ($cliArguments | ForEach-Object { Quote-Argument $_ }) -join ' '
 $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 if ($existing) {
     if ($existing.Actions.Execute -ne $exe) { throw 'An unrelated task uses this name; it was left unchanged.' }
@@ -38,7 +59,7 @@ $action = New-ScheduledTaskAction -Execute $exe -Argument $arguments -WorkingDir
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity.Name
 $principal = New-ScheduledTaskPrincipal -UserId $identity.Name -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew -RestartCount 10 -RestartInterval (New-TimeSpan -Minutes 1)
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description 'Switch Windows default microphones using INZONE Buds touch controls. Windowless, current user only.' -Force | Out-Null
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description 'Run configured INZONE Buds gesture actions. Default: switch Windows microphones. Windowless, current user only.' -Force | Out-Null
 if (!$NoStart) {
     # Replace the manually started workspace copy, if it is still running.
     $workspaceExe = Join-Path $PSScriptRoot 'dist/InzoneMicSwitch.exe'

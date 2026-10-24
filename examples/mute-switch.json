@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "bindings": {
+    "mic-muted": { "type": "microphone", "target": "desk" },
+    "mic-unmuted": { "type": "microphone", "target": "buds" }
+  }
+}

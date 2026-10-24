@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "bindings": {
+    "volume-return": { "type": "microphone", "target": "toggle" }
+  }
+}

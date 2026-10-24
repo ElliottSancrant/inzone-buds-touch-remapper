@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "bindings": {
+    "ambient-triple": {
+      "type": "command",
+      "fileName": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "arguments": ["-NoProfile", "-NonInteractive", "-File", "./scripts/Gesture.ps1"],
+      "timeoutMs": 10000
+    }
+  }
+}

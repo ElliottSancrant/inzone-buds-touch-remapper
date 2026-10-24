@@ -4,6 +4,8 @@ Build on Windows with the .NET 9 SDK using `./Build.ps1`. The build must complet
 
 `src/InzoneMicSwitch/ProtocolTests.cs` contains synthetic report vectors covering framing, checksum validation, chunk boundaries, fragmentation, malformed input, and repeated transaction IDs. `GestureDetector.RunSelfTests()` checks volume/mute mapping, baseline behavior, timing, cooldown, and resets. Add tests for new parser or gesture behavior. Tests use an explicit `--self-test` entry point rather than a separate test framework.
 
+`ActionTests.cs` tests configuration validation, default/disabled mappings, microphone actions through a fake audio backend, preview isolation, process argument boundaries, command failure/timeout, and dispatcher cancellation. Process tests run harmless `cmd.exe` exit commands and a timed-out PowerShell sleep; they do not launch user-configured commands. The build also validates every example JSON file. Keep action handlers separate from gesture recognition; see [the extension guide](docs/CONFIGURATION.md#add-a-built-in-action-in-c).
+
 Keep live hardware checks separate from offline tests. Report Windows version, Buds firmware if known, connection mode, steps performed, and observed results. Live checks should cover both switch directions, all three capture roles, disconnect/reconnect, and behavior with INZONE Hub closed. Changing capture defaults affects other applications, so restore your preferred input afterward.
 
 Do not add Sony installers, DLLs, decompiled source, firmware, or unreviewed capture logs. Use small synthetic protocol fixtures. Remove local usernames, paths, machine names, and device endpoint identifiers from issue reports where unnecessary. New third-party code or dependencies must retain their license and attribution.

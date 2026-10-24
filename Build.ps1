@@ -21,11 +21,16 @@ foreach ($variant in @(@{ Configuration = 'Release'; Folder = 'dist' }, @{ Confi
 }
 & (Join-Path $package 'dist/InzoneMicSwitch.exe') --self-test
 if ($LASTEXITCODE -ne 0) { throw 'Offline self-tests failed.' }
+Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'examples') -Filter *.json -File | ForEach-Object {
+    & (Join-Path $package 'dist/InzoneMicSwitch.exe') --config $_.FullName --validate-config
+    if ($LASTEXITCODE -ne 0) { throw "Invalid example configuration: $($_.Name)" }
+}
 foreach ($file in @('README.md', 'CONTRIBUTING.md', 'LICENSE', 'NOTICE', 'Install-Autostart.ps1', 'Disable-Autostart.ps1',
     'Enable-Autostart.cmd', 'Disable-Autostart.cmd', 'Start-MicSwitch.cmd', 'Preview-MicSwitch.cmd')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination $package
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'docs') -Destination $package -Recurse
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'examples') -Destination $package -Recurse
 $archive = Join-Path $outputRoot 'InzoneMicSwitch-win-x64.zip'
 Compress-Archive -Path (Join-Path $package '*') -DestinationPath $archive -Force
 $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()

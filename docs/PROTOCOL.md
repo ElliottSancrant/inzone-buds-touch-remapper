@@ -26,16 +26,19 @@ Address `0x14` represents headset (4) to PC (1); `0x12` represents transceiver (
 
 ## Gesture inputs
 
-Only headset-to-PC reports drive gestures. Relevant payloads have three bytes:
+Only headset-to-PC reports drive gestures. Relevant payloads have the lengths below:
 
 | Event ID | Used fields |
 | --- | --- |
-| `0x21` | Byte 0: headphone mute; byte 1: volume (`0xFF` ignored) |
-| `0x24` | Byte 0: microphone muted, `0` or `1` |
+| `0x41` | Four bytes: mode, ambient level, percentage/sentinel, voice focus |
+| `0x21` | Three bytes; byte 0: headphone mute; byte 1: volume (`0xFF` ignored) |
+| `0x24` | Three bytes; byte 0: microphone muted, `0` or `1` |
 
 Only type `0xA0` changes trigger an action. Other accepted event types can establish state without switching. A transceiver event ID `0x01` resets the gesture baseline.
 
-Volume mode detects a rise from V to V+1 followed by a return to V within the configured window (default four seconds), with a two-second toggle cooldown. Mute mode maps a changed mute state to desk (muted) or Buds (unmuted). The initial state produces no switch. State and partial packets are reset when the reader reconnects.
+The default `ambient-triple` gesture counts three distinct active mode notifications (`0x41`, type `0xA0`) within four seconds, with a two-second cooldown. Accepted mode values are 0, 1, and 2; the captured ANC/ambient transitions used 1 and 2. The first active report counts, repeated modes (including level-only changes) do not, and passive reports or reconnects reset a partial sequence. Three completed changes consume the sequence without overlap.
+
+Optional volume mode detects V -> V-1 -> V -> V-1 -> V: four one-step changes, down/up/down/up, within the configured window (default four seconds measured from the first down to the final up), with a two-second toggle cooldown. The initial V is a known baseline; duplicate values do not advance the sequence. Partial sequences never trigger, and completed sequences do not overlap. Mute mode maps a changed mute state to desk (muted) or Buds (unmuted). The initial state produces no switch. State and partial packets are reset when the reader reconnects.
 
 Transaction IDs are not reliable duplicate-event keys: hardware was observed reusing an ID for distinct state updates. The decoder therefore retains repeated IDs, while gesture logic ignores unchanged volume/mute states.
 

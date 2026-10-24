@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "bindings": {
+    "ambient-triple": {
+      "type": "launch",
+      "fileName": "%SystemRoot%\\System32\\notepad.exe",
+      "arguments": []
+    }
+  }
+}

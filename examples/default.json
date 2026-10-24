@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "windowMs": 4000,
+  "microphones": {
+    "budsName": "INZONE Buds",
+    "deskName": "Yeti"
+  },
+  "bindings": {
+    "ambient-triple": { "type": "microphone", "target": "toggle" }
+  }
+}
